@@ -124,6 +124,8 @@ jobs:
         run: |
           set -euo pipefail
           STAGE=dist/macos
+          mkdir -p "$STAGE/mac_x64"
+          mkdir -p "$STAGE/Resources/espeak-ng-data"
           mkdir -p "$STAGE/data"
 
           # The arm64 slice resolves libpiper / libonnxruntime via @loader_path;
