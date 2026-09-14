@@ -82,7 +82,7 @@ LlamaLm::~LlamaLm() {
     llama_model_free(model_);
 }
 
-bool LlamaLm::open(const std::string &model_path) {
+bool LlamaLm::open(const std::string &model_path, bool use_gpu) {
   // Silence ggml/llama log spam (warnings still go through).
   llama_log_set(
       [](enum ggml_log_level lvl, const char *msg, void *) {
@@ -94,7 +94,9 @@ bool LlamaLm::open(const std::string &model_path) {
   llama_backend_init();
 
   llama_model_params mparams = llama_model_default_params();
-  mparams.n_gpu_layers = 999;
+  mparams.n_gpu_layers = use_gpu ? 999 : 0;
+  logging::info("[%s] inference backend: %s", kBackendTag,
+                use_gpu ? "Metal GPU" : "CPU");
   mparams.use_mmap = true;
   mparams.use_mlock = false;
 
@@ -188,7 +190,7 @@ std::string LlamaLm::respond(const std::string &system_prompt,
                              const std::string &user_text) {
   if (!ctx_ || !sampler_ || !model_ || !vocab_)
     return {};
-  logging::info("[%s] respond, %zu+%zu chars (llama.cpp, Metal)", kBackendTag,
+  logging::info("[%s] respond, %zu+%zu chars (llama.cpp)", kBackendTag,
                 system_prompt.size(), user_text.size());
 
   // Each call is a fresh turn. Drop everything from the previous one.
@@ -225,8 +227,7 @@ std::string LlamaLm::respond_constrained(const std::string &system_prompt,
     return {};
   if (grammar_gbnf.empty())
     return respond(system_prompt, user_text);
-  logging::info("[%s] respond_constrained (GBNF), %zu+%zu chars (llama.cpp, "
-                "Metal)",
+    logging::info("[%s] respond_constrained (GBNF), %zu+%zu chars (llama.cpp)",
                 kBackendTag, system_prompt.size(), user_text.size());
 
   // Build a fresh sampler chain for this call only: grammar at the
