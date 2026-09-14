@@ -108,11 +108,14 @@ WhisperStt::~WhisperStt() {
 
 bool WhisperStt::open(const std::string &model_path,
                       const std::string &language,
-                      int gpu_min_free_vram_gb) {
+                      int gpu_min_free_vram_gb,
+                      bool use_gpu_on_apple) {
   whisper_context_params cparams = whisper_context_default_params();
 
 #if defined(__APPLE__)
-  cparams.use_gpu = true; // Metal on Apple Silicon
+  cparams.use_gpu = use_gpu_on_apple;
+  logging::info("[%s] Apple inference backend: %s", kBackendTag,
+                cparams.use_gpu ? "Metal GPU" : "CPU");
 #elif defined(__linux__)
   {
     const uint64_t free_vram  = detect_gpu_free_vram_bytes();
