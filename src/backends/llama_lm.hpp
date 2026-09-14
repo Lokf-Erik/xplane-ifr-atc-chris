@@ -19,7 +19,8 @@ struct llama_vocab;
 
 namespace backends {
 
-// Concrete ILanguageModel backed by llama.cpp + Metal. open() loads
+// Concrete ILanguageModel backed by llama.cpp using selectable CPU or Metal
+// inference. open() loads
 // the GGUF model and builds the inference context + sampler chain;
 // respond() reuses them. The KV cache is cleared on every call so each
 // turn is independent — multi-turn state belongs in the caller's state
