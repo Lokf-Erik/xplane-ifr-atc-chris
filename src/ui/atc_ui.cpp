@@ -1411,6 +1411,44 @@ static void draw_settings_tab() {
   }
   const std::string active_backend_key =
       backend_mode_keys[backend_mode_selection];
+
+#if defined(__APPLE__) && defined(XPWELLYS_USE_LOCAL_INFERENCE)
+  if (active_backend_key == "local") {
+    ImGui::Indent();
+    ImGui::SeparatorText("Apple Silicon acceleration");
+
+    bool whisper_gpu = settings::local_whisper_use_gpu();
+    bool llama_gpu = settings::local_llama_use_gpu();
+    bool acceleration_changed = false;
+
+    if (ImGui::Checkbox("Use Metal GPU for Whisper STT", &whisper_gpu))
+      acceleration_changed = true;
+    if (ImGui::IsItemHovered())
+      tooltip("Disabled uses the CPU and reduces GPU contention with X-Plane.");
+
+    if (ImGui::Checkbox("Use Metal GPU for Llama LM", &llama_gpu))
+      acceleration_changed = true;
+    if (ImGui::IsItemHovered())
+      tooltip("Disabled gives slower responses but protects X-Plane frame rate.");
+
+    if (acceleration_changed) {
+      settings::set_local_whisper_use_gpu(whisper_gpu);
+      settings::set_local_llama_use_gpu(llama_gpu);
+      settings::save();
+
+      // These choices are applied while the model contexts are created.
+      // Reload the local pipeline so the new mode takes effect immediately.
+      backends::loader::stop();
+      backends::loader::start();
+    }
+
+    ImGui::TextDisabled(
+        "Changing acceleration reloads the local models and may take a moment.");
+    ImGui::Unindent();
+    ImGui::Spacing();
+  }
+#endif
+
   const bool show_openai_controls = (active_backend_key == "openai");
   // Mistral controls also needed in hybrid mode (key + voice config).
   const bool show_mistral_controls = (active_backend_key == "mistral" ||
