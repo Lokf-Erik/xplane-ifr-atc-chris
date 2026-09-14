@@ -20,9 +20,8 @@ namespace {
 // stays silent when it cannot, which is how a wrong argument reads exactly like
 // an empty table.
 std::string overrides_file() {
-  const char *home = std::getenv("HOME");
-  return std::string(home ? home : "")
-         + "/Apps/Scripts/PERSO/AI-atc-XP12-plugin/repo/Resources/airport+.json";
+  return std::string(XP_WELLYS_ATC_SOURCE_DIR)
+         + "/Resources/airport+.json";
 }
 } // namespace
 
