@@ -32,8 +32,9 @@ public:
   // `gpu_min_free_vram_gb` controls the Linux GPU-vs-CPU decision:
   // GPU is enabled only when detected free VRAM >= this threshold.
   // 0 = always try GPU. Default 8 GB.
+  // `use_gpu_on_apple` selects Metal or CPU inference on Apple Silicon.
   bool open(const std::string &model_path, const std::string &language,
-            int gpu_min_free_vram_gb = 8);
+    int gpu_min_free_vram_gb = 8, bool use_gpu_on_apple = true);
 
   std::string transcribe(const std::vector<float> &pcm_16k_mono,
                          const std::string &airport_context,
