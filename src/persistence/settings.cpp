@@ -84,6 +84,8 @@ static json default_config() {
       {"simbrief_pilot_id", 0},
       {"start_mode", "engines_running"},
       {"backend_mode", "local"},
+      {"local_whisper_use_gpu", false},
+      {"local_llama_use_gpu", false},
       {"api_key_saved", false},
       {"openai_stt_model", "whisper-1"},
       {"openai_lm_model", "gpt-4o-mini"},
@@ -622,6 +624,20 @@ std::string local_stt_model() {
   return cfg.value("local_stt_model", std::string("ggml-base.en-atc.bin"));
 }
 void set_local_stt_model(const std::string &v) { cfg["local_stt_model"] = v; }
+
+bool local_whisper_use_gpu() {
+  return cfg.value("local_whisper_use_gpu", false);
+}
+void set_local_whisper_use_gpu(bool enabled) {
+  cfg["local_whisper_use_gpu"] = enabled;
+}
+
+bool local_llama_use_gpu() {
+  return cfg.value("local_llama_use_gpu", false);
+}
+void set_local_llama_use_gpu(bool enabled) {
+  cfg["local_llama_use_gpu"] = enabled;
+}
 
 int whisper_gpu_min_free_vram_gb() {
   return cfg.value("whisper_gpu_min_free_vram_gb", 8);
