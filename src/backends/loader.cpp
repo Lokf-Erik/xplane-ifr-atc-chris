@@ -316,7 +316,8 @@ void load_whisper(const model_manifest::Entry &whisper_entry,
                "Loading whisper.cpp context...");
   auto stt = std::make_unique<backends::WhisperStt>();
   std::string p = model_paths::models_dir() + "/" + whisper_entry.filename;
-  if (stt->open(p, lang, settings::whisper_gpu_min_free_vram_gb())) {
+  if (stt->open(p, lang, settings::whisper_gpu_min_free_vram_gb(),
+                settings::local_whisper_use_gpu())) {
     backends::register_stt(std::move(stt));
     update_state(whisper_entry, FileState::Ready, {});
     logging::info("STT backend ready (whisper.cpp, lang=%s)", lang.c_str());
@@ -334,7 +335,7 @@ void load_llama(const model_manifest::Entry &llama_entry) {
                "Loading llama.cpp context (this can take a few seconds)...");
   auto lm = std::make_unique<backends::LlamaLm>();
   std::string p = model_paths::models_dir() + "/" + llama_entry.filename;
-  if (lm->open(p)) {
+  if (lm->open(p, settings::local_llama_use_gpu())) {
     backends::register_lm(std::move(lm));
     update_state(llama_entry, FileState::Ready, {});
     logging::info("LM backend ready (llama.cpp)");
