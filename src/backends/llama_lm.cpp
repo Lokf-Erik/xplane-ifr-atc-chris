@@ -227,7 +227,7 @@ std::string LlamaLm::respond_constrained(const std::string &system_prompt,
     return {};
   if (grammar_gbnf.empty())
     return respond(system_prompt, user_text);
-    logging::info("[%s] respond_constrained (GBNF), %zu+%zu chars (llama.cpp)",
+  logging::info("[%s] respond_constrained (GBNF), %zu+%zu chars (llama.cpp)",
                 kBackendTag, system_prompt.size(), user_text.size());
 
   // Build a fresh sampler chain for this call only: grammar at the
