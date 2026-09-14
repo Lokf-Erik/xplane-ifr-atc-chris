@@ -32,7 +32,7 @@ public:
   LlamaLm(const LlamaLm &) = delete;
   LlamaLm &operator=(const LlamaLm &) = delete;
 
-  bool open(const std::string &model_path);
+  bool open(const std::string &model_path, bool use_gpu = true);
 
   std::string respond(const std::string &system_prompt,
                       const std::string &user_text) override;
