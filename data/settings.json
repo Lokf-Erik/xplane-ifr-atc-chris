@@ -12,6 +12,8 @@
   "hold_enabled": true,
   "start_mode": "engines_running",
   "backend_mode": "local",
+  "local_whisper_use_gpu": false,
+  "local_llama_use_gpu": false,
   "local_stt_model": "ggml-base.en-atc.bin",
   "whisper_gpu_min_free_vram_gb": 8,
   "api_key_saved": false,
