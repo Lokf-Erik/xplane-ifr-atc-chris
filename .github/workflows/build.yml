@@ -73,18 +73,18 @@ jobs:
       # Local inference needs the whisper.cpp / llama.cpp / Piper submodules.
       # Only tag builds compile them, so only tag builds fetch them — PR /
       # dispatch stay submodule-free and fast.
-      - name: Fetch submodules (tag builds only)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Fetch local-inference submodules
+        if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git submodule update --init --recursive
 
       - name: Setup dependencies (cloud-only — no submodules)
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.event_name == 'pull_request' }}
         run: make setup-cloud
 
       - name: Setup dependencies (with local-inference submodules)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
         run: make setup
 
       - name: Set up ccache
@@ -97,7 +97,7 @@ jobs:
       - name: Build (fast compile check, cloud-only)
         # PR / manual-dispatch runs only need to prove the macOS code compiles.
         # arm64 cloud-only finishes in a couple of minutes.
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           cmake -B build-mac-fast -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
@@ -113,19 +113,18 @@ jobs:
         # build/xp_wellys_atc.xpl and stages libpiper.dylib +
         # libonnxruntime.*.dylib + espeak_ng-install/ next to it. -DRELEASE=ON
         # bakes VERSION.txt into both slices.
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
         run: |
           make build RELEASE_FLAG="-DRELEASE=ON"
           lipo -info build/xp_wellys_atc.xpl
           ccache --show-stats
 
       - name: Stage macOS slice
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
         run: |
           set -euo pipefail
           STAGE=dist/macos
-          mkdir -p "$STAGE/mac_x64"
-          mkdir -p "$STAGE/Resources/espeak-ng-data"
+          mkdir -p "$STAGE/data"
 
           # The arm64 slice resolves libpiper / libonnxruntime via @loader_path;
           # they are arm64-only and untouched by the x86_64 (cloud-only) slice
@@ -151,8 +150,16 @@ jobs:
             build/espeak_ng-install/share/espeak-ng-data/ \
             "$STAGE/Resources/espeak-ng-data/"
 
+          # Include the current parser rules and templates in manual test builds.
+          # Keep settings.json out so a test installation preserves user settings.
+          cp -R data/atc_profiles "$STAGE/data/"
+          cp data/atc_prompt_templates.json "$STAGE/data/"
+          cp data/models_catalog.json "$STAGE/data/"
+          [ ! -f Resources/airspace+.txt ] || cp Resources/airspace+.txt "$STAGE/Resources/"
+          [ ! -f Resources/airport+.json ] || cp Resources/airport+.json "$STAGE/Resources/"
+
       - name: Upload macOS slice
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/upload-artifact@v4
         with:
           name: slice-macos
